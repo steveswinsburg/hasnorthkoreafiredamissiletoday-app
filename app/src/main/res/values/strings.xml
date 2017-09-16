@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Has North Korea Fired A Missile Today?</string>
+    <string name="app_name_short">HNKFAMT?</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+    <string name="error">dunno, sorry.</string>
+</resources>
