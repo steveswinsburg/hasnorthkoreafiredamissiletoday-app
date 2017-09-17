@@ -3,6 +3,8 @@ package northkorea.flyingkite.com.au;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -20,12 +22,16 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
 
+    TextView resultsView = null;
+    ProgressBar progressBar = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final TextView resultsView = (TextView) findViewById(R.id.resultsView);
+        this.resultsView = (TextView) findViewById(R.id.resultsView);
+        this.progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://hasnorthkoreafiredamissiletoday.com/data.json";
@@ -35,14 +41,16 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        resultsView.setText(parse(response));
+                        String text = parse(response);
+                        show(text);
                     }
                 }, new Response.ErrorListener() {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, error.getLocalizedMessage());
-                        resultsView.setText(parse(null));
+                        String text = parse(null);
+                        show(text);
                     }
                 });
         queue.add(request);
@@ -82,5 +90,11 @@ public class MainActivity extends Activity {
             return getString(R.string.error);
         }
 
+    }
+
+    private void show(String text) {
+        resultsView.setText(text);
+        resultsView.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.INVISIBLE);
     }
 }
