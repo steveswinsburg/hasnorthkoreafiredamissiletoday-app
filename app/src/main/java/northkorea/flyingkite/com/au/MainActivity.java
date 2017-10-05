@@ -2,6 +2,7 @@ package northkorea.flyingkite.com.au;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -18,12 +19,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SwipeRefreshLayout.OnRefreshListener{
 
     private static final String TAG = "MainActivity";
+    private static final String URL = "http://hasnorthkoreafiredamissiletoday.com/data.json";
 
-    TextView resultsView = null;
-    ProgressBar progressBar = null;
+    private TextView resultsView = null;
+    private SwipeRefreshLayout refreshLayout = null;
+
+    private JsonObjectRequest request;
+    private RequestQueue queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,29 +36,14 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         this.resultsView = (TextView) findViewById(R.id.resultsView);
-        this.progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        this.refreshLayout = (SwipeRefreshLayout) findViewById(R.id.refreshLayout);
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://hasnorthkoreafiredamissiletoday.com/data.json";
+        refreshLayout.setOnRefreshListener(this);
 
-        JsonObjectRequest request = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        queue = Volley.newRequestQueue(this);
 
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        String text = parse(response);
-                        show(text);
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, error.getLocalizedMessage());
-                        String text = parse(null);
-                        show(text);
-                    }
-                });
-        queue.add(request);
+        // call manually so that initial value is set without user needing to swipe down.
+        this.onRefresh();
     }
 
     /**
@@ -92,9 +82,42 @@ public class MainActivity extends Activity {
 
     }
 
+    @Override
+    public void onRefresh() {
+        Log.i(TAG, "onRefresh: called");
+        // start progress animation
+        refreshLayout.setRefreshing(true);
+
+        // make new JsonObjectRequest
+        request = new JsonObjectRequest
+                (Request.Method.GET, URL, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i(TAG, "onResponse: response received");
+                        String text = parse(response);
+                        show(text);
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.i(TAG, "onResponse: error received");
+                        Log.e(TAG, error.getLocalizedMessage());
+                        String text = parse(null);
+                        show(text);
+                    }
+                });
+
+        // add request to queue
+        queue.add(request);
+    }
+
     private void show(String text) {
         resultsView.setText(text);
         resultsView.setVisibility(View.VISIBLE);
-        progressBar.setVisibility(View.INVISIBLE);
+
+        // new result has been displayed. Cancel animation
+        refreshLayout.setRefreshing(false);
     }
 }
