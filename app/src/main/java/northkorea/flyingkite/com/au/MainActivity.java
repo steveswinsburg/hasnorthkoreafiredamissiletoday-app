@@ -53,11 +53,12 @@ public class MainActivity extends Activity implements SwipeRefreshLayout.OnRefre
      */
     private String parse(JSONObject response) {
 
-        Log.d(TAG, response.toString());
-
         if(response == null) {
             return getString(R.string.error);
         }
+
+        // if response == null, this line would give error. Hence that check is above
+        Log.d(TAG, response.toString());
 
         try {
             String result = response.getString("today");
@@ -102,8 +103,7 @@ public class MainActivity extends Activity implements SwipeRefreshLayout.OnRefre
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.i(TAG, "onResponse: error received");
-                        Log.e(TAG, error.getLocalizedMessage());
+                        Log.i(TAG, "onErrorResponse: " + error.getMessage());
                         String text = parse(null);
                         show(text);
                     }
